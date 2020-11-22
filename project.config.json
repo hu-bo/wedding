@@ -21,7 +21,9 @@
     "useMultiFrameRuntime": false,
     "useApiHook": true,
     "babelSetting": {
-      "ignore": [],
+      "ignore": [
+        "functions/**/node_modules"
+      ],
       "disablePlugins": [],
       "outputPath": ""
     },
@@ -37,7 +39,7 @@
   "compileType": "miniprogram",
   "appid": "wxbe17cfd2babc9709",
   "projectname": "wedding",
-  "cloudfunctionRoot": "static/functions/",
+  "cloudfunctionRoot": "functions/",
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate",

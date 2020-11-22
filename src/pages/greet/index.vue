@@ -25,8 +25,15 @@ export default {
   data () {
     return {
       userList: [],
-      openId: '',
-      userInfo: ''
+      openId: ''
+    }
+  },
+  computed: {
+    isMock () {
+      return this.$store.state.isMock
+    },
+    currentUserInfo () {
+      return this.$store.state.currentUserInfo
     }
   },
   onShow () {
@@ -35,15 +42,7 @@ export default {
   },
   methods: {
     sendGreet (e) {
-      const that = this
-      if (e.target.errMsg === 'getUserInfo:ok') {
-        wx.getUserInfo({
-          success: function (res) {
-            that.userInfo = res.userInfo
-            that.getOpenId()
-          }
-        })
-      }
+      this.getOpenId()
     },
 
     addUser () {
@@ -52,7 +51,7 @@ export default {
       const user = db.collection('user')
       user.add({
         data: {
-          user: that.userInfo
+          user: that.currentUserInfo
         }
       }).then(res => {
         that.getUserList()

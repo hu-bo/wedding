@@ -15,8 +15,11 @@ exports.main = async (event, context) => {
     tasks.push(promise)
   }
   // 等待所有
-  return (await Promise.all(tasks)).reduce((acc, cur) => ({
-    data: acc.data.concat(cur.data),
-    errMsg: acc.errMsg
-  }))
+  return (await Promise.all(tasks)).reduce((acc, cur) => {
+    console.log(acc)
+    return {
+      data: acc.data.concat(cur.data),
+      errMsg: acc.errMsg
+    }
+  })
 }

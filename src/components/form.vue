@@ -4,7 +4,7 @@
         <p class="title">
             <span>* </span>姓名
         </p>
-        <input type="text" placeholder="怎么称呼您呢？" v-model="name" maxlength="6">
+        <input type="text" placeholder="怎么称呼您呢？" v-model="name" maxlength="10">
         <p class="title">
             <span>* </span>电话
         </p>
@@ -33,22 +33,33 @@
 import tools from 'common/js/h_tools'
 export default {
   name: 'Form',
+  props: ['userInfo'],
   data () {
     return {
-      list: [{
-        name: '自己出席', value: '自己出席', checked: true
-      }, {
-        name: '两人出席', value: '两人出席', checked: false
-      }, {
-        name: '三人出席', value: '三人出席', checked: false
-      }, {
-        name: '三人以上', value: '三人以上', checked: false
-      }],
+      list: [
+        {
+          name: '自己出席', value: '自己出席', checked: true
+        },
+        {
+          name: '带家属', value: '带家属', checked: false
+        },
+        {
+          name: '可能带家属', value: '可能带家属', checked: false
+        },
+        {
+          name: '可能带宠物', value: '可能带宠物', checked: false
+        }
+      ],
       desc: '',
-      name: '',
+      name: this.userInfo.nickName || '',
       phone: '',
       count: '自己出席',
       phoneFlag: false
+    }
+  },
+  watch: {
+    userInfo () {
+      this.name = this.userInfo.nickName
     }
   },
   methods: {
@@ -144,6 +155,7 @@ export default {
         background #f5f5f5
         color #333
         font-size 24rpx
+        border 1px solid #dfdfdf
     .group
         display flex
         flex-wrap wrap
@@ -164,6 +176,7 @@ export default {
         padding 20rpx
         width 650rpx
         background #f5f5f5
+        border 1px solid #dfdfdf
         &::-webkit-input-placeholder
             font-size 30rpx
             color #999

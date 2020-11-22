@@ -113,6 +113,9 @@ export default {
   text-align center
 .text-right
   text-align right
+.color-tip 
+  color #cccccc
+
 page
     height 100%
 image

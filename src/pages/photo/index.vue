@@ -17,11 +17,6 @@ export default {
     HSwiper,
     AlbumSwiper
   },
-  onShow () {
-    // this.isGif = !this.isGif
-    this.getList()
-  },
-
   data () {
     return {
       list: []
@@ -38,6 +33,13 @@ export default {
         title: this.config.barTitle.photo
       })
     }
+  },
+  onShow () {
+    // this.isGif = !this.isGif
+    wx.setNavigationBarTitle({
+      title: this.config.barTitle.photo
+    })
+    this.getList()
   },
   methods: {
     getList () {

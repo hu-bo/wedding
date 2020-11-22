@@ -9,12 +9,7 @@ App.mpType = 'app'
 wx.cloud.init({
   env: 'dev-3gl8gydv5495d5df'
 })
-// wx.cloud.callFunction({
-//   name: 'config',
-//   data: {}
-// }).then(res => {
-//   store.commit('setConfig', res.result)
-// })
+
 const db = wx.cloud.database()
 const config = db.collection('config')
 config.get().then(res => {
@@ -23,5 +18,12 @@ config.get().then(res => {
   }
   store.commit('setConfig', res.data[0])
 })
+setTimeout(() => {
+  wx.getUserInfo({
+    success: function (res) {
+      store.commit('setCurrentUserInfo', res.userInfo)
+    }
+  })
+}, 100)
 const app = new Vue(App)
 app.$mount()

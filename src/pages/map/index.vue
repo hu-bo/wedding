@@ -13,7 +13,7 @@
         >
         </map>
         <div class="text-right" style="padding-right: 20px">
-          <text style="font-size: 10px;color:#cccccc">推荐使用高德地图导航  </text>
+          <text style="font-size: 10px;color:#cccccc" @tap="copy" @touchstart="copy">推荐使用高德地图导航(点我复制地址)  </text>
         </div>
         <div class="call">
           <div class="left" @tap="linkHe">
@@ -71,6 +71,11 @@ export default {
       })
     }
   },
+  onShow () {
+    wx.setNavigationBarTitle({
+      title: this.config.barTitle.map
+    })
+  },
   methods: {
     toNav () {
       wx.openLocation({
@@ -93,6 +98,22 @@ export default {
     linkShe () {
       wx.makePhoneCall({
         phoneNumber: '18379193842'
+      })
+    },
+    copy () {
+      wx.setClipboardData({
+        data: '江西省吉安市吉安县油田镇路西村田垅村',
+        success: function (res) {
+          wx.showToast({
+            title: '复制成功'
+          })
+          wx.getClipboardData({
+          // 这个api是把拿到的数据放到电脑系统中的
+            success: function (res) {
+              console.log(res.data) // data
+            }
+          })
+        }
       })
     }
   }

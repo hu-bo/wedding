@@ -8,7 +8,8 @@ const store = new Vuex.Store({
     configKey: 'prod',
     config: {},
     receiverNick: '',
-    receiverPhone: 0
+    receiverPhone: 0,
+    currentUserInfo: undefined
   },
   mutations: {
     // setConfig (state, payload) {
@@ -20,6 +21,9 @@ const store = new Vuex.Store({
       state.configKey = payload.isMock ? 'mock' : 'prod'
       state.receiverNick = payload.receiverNick
       state.receiverPhone = payload.receiverPhone
+    },
+    setCurrentUserInfo (state, payload) {
+      state.currentUserInfo = payload
     }
   }
 })

@@ -1,5 +1,6 @@
 <template>
     <div class="message">
+        <Greet :list="userList" />
         <scroll-view
             scroll-y
             @scroll="scroll"
@@ -7,26 +8,53 @@
         >
             <p class="place"></p>
             <div class="item" v-for="(item, index) in messageList" :key="index">
-                <image class="left" :src="item.url"/>
+                <image class="left" :src="item.avatarUrl"/>
                 <div class="right">
                     <div class="top">
                         <span class="top-l">{{item.name}}</span>
                         <span class="top-r">{{item.time}}</span>
                     </div>
-                    <p class="con">{{item.desc}}</p>
+                    <p v-if="item.desc !== 'heart-animation'" class="con">{{item.desc}}</p>
+                    <image
+                      v-if="item.desc === 'heart-animation'"
+                      class="con heart-animation"
+                      src="../../static/images/heart-animation.gif"
+                    />
                 </div>
             </div>
+            <div class="text-center color-tip" v-if="loading.messageList">loading...</div>
             <p class="place-end"></p>
         </scroll-view>
         <div class="bottom">
-            <button class="left" lang="zh_CN" open-type="getUserInfo" @getuserinfo="toMessage">说点啥吧</button>
-            <button class="left" lang="zh_CN" open-type="getUserInfo" @getuserinfo="toMessage">祝福一下</button>
-            <button class="right" @tap="toForm">我要出席</button> 
+          <button
+            class="left"
+            lang="zh_CN"
+            open-type="getUserInfo"
+            @tap="sendGreet"
+            :loading="loading.greet"
+            style="background:#E62C6B"
+         >送上祝福</button>
+          <button
+            class="left"
+            lang="zh_CN"
+           @tap="toMessage"
+           
+          >说点啥吧</button>
+             
+          <button class="right" open-type="share" style=" background: #2CA6F9">分享喜悦</button> 
+            <!-- <button class="left" lang="zh_CN" open-type="getUserInfo" @getuserinfo="toMessage">祝福一下</button>
+            <button class="right" @tap="toForm">我要出席</button>  -->
+            <!-- <view class="send_msg,{{showOrHidden?'show':'hide'}}">
+              <form bindreset="foo">
+                <input placeholder="在这里输入您要说的话" class="send_ipt" bindinput="bindKeyInput" />
+                <button form-type="reset" class="send_btn">发布</button>
+              </form>
+            </view> -->
         </div>
-        <div class="dialog" v-show="isOpen">
+        <div class="dialog" v-if="isOpen">
             <textarea focus="true" maxlength="80" class="desc" placeholder="在这里输入您想要说的话" name="textarea" placeholder-style="color:#ccc;" v-model="desc"/>
             <div class="btn">
-                <button class="left" @tap="sendMessage">发送留言</button>
+                <button class="left" @tap="sendMessage" :loading="loading.message">发送留言</button>
                
                 <button class="right" @tap="cancel">取消</button>
             </div>
@@ -34,14 +62,14 @@
         <!-- <div class="video-dialog" @tap="toVideo">
             <image src="../../static/images/video1.png"/>
         </div> -->
-        <div class="form-dialog" @tap="lookList">
+        <div class="form-dialog" @tap="toForm">
             <image src="../../static/images/form.png"/>
         </div>
         <!-- <div class="video" v-show="isVideo">
             <h-video @closeVideo="closeVideo"></h-video>
         </div> -->
         <div class="form" v-show="isForm">
-            <h-form @closeForm="closeForm" @getFromlist="getFromlist"></h-form>
+            <h-form :userInfo="currentUserInfo" @closeForm="closeForm" @getFromlist="getFromlist"></h-form>
         </div>
         <div class="form-list" v-show="isFormlist">
             <h-formlist @closeFormlist="closeFormlist" :formList="formList"></h-formlist>
@@ -56,29 +84,39 @@ import HForm from 'components/form'
 import HFormlist from 'components/formlist'
 import tools from 'common/js/h_tools'
 import config from 'common/js/config'
+import Greet from 'components/Greet'
 export default {
   name: 'Message',
   components: {
     // HVideo,
     HForm,
-    HFormlist
+    HFormlist,
+    Greet
   },
   data () {
     return {
       isOpen: false,
       desc: '',
       messageList: [],
+      userList: [],
       openId: '',
-      userInfo: '',
       isForm: false,
       isVideo: false,
       isFormlist: false,
-      formList: []
+      formList: [],
+      loading: {
+        greet: false,
+        message: false,
+        messageList: true
+      }
     }
   },
   computed: {
     config () {
       return config[this.$store.state.configKey]
+    },
+    currentUserInfo () {
+      return this.$store.state.currentUserInfo || {}
     }
   },
   watch: {
@@ -88,12 +126,13 @@ export default {
       })
     }
   },
-  onShow () {
-    const that = this
-    that.isVideo = false
-    that.isForm = false
-    that.isFormlist = false
-    that.getMessageList()
+  onReady () {
+    this.isVideo = false
+    this.isForm = false
+    this.isFormlist = false
+    this.getMessageList()
+    this.getUserList()
+    this.getOpenId()
     wx.setNavigationBarTitle({
       title: this.config.barTitle.message
     })
@@ -101,41 +140,53 @@ export default {
 
   methods: {
     toMessage (e) {
-      const that = this
-      if (e.target.errMsg === 'getUserInfo:ok') {
-        // that.isOpen = true
-        wx.getUserInfo({
-          success: function (res) {
-            that.userInfo = res.userInfo
-            that.isOpen = true
-            that.getOpenId()
-          }
-        })
-      }
+      this.isOpen = true
+      // this.getOpenId()
     },
 
     cancel () {
       const that = this
       that.isOpen = false
     },
+    sendGreet (e) {
+      this.getOpenId()
 
-    sendMessage () {
+      let canGreet = true
+      this.messageList.forEach(item => {
+        if (item._openid === this.openId && item.desc === 'heart-animation') {
+          canGreet = false
+        }
+      })
+      if (canGreet) {
+        this.sendMessage('heart-animation')
+      } else {
+        tools.showToast('您已经送过祝福了~')
+      }
+    },
+    sendMessage (msg) {
       const that = this
-      if (that.desc) {
+      if (that.desc || (typeof msg === 'string' && msg !== '')) {
         const db = wx.cloud.database()
         const message = db.collection('message')
+        this.loading.greet = true
+        this.loading.message = true
         message.add({
           data: {
-            desc: that.desc,
+            desc: typeof msg === 'string' ? msg : that.desc,
             type: 'message',
             time: Date.now(),
-            avatar: that.userInfo.avatar,
-            name: that.userInfo.nickName
+            avatarUrl: that.currentUserInfo.avatarUrl,
+            name: that.currentUserInfo.nickName
           }
         }).then(res => {
-          that.isOpen = false
-          that.desc = ''
           that.getMessageList()
+          that.getUserList()
+          setTimeout(() => {
+            that.desc = ''
+            that.isOpen = false
+            this.loading.greet = false
+            this.loading.message = false
+          }, 1000)
         })
       } else {
         tools.showToast('说点什么吧~')
@@ -146,18 +197,43 @@ export default {
       wx.cloud.callFunction({
         name: 'messageList',
         data: {}
-      }).then(res => {
-        console.log(res)
-        if (!Array.isArray(res.data) || res.data.length === 0) {
+      }).then(({result}) => {
+        this.loading.messageList = false
+        if (!Array.isArray(result.data) || result.data.length === 0) {
           return
         }
-        that.messageList = res.result.data.reverse().map(item => {
-          item.time = dayjs(item.time).format()
+        that.messageList = result.data.reverse().map(item => {
+          item.time = dayjs(item.time).format('YYYY-MM-DD HH:mm:ss')
           return item
         })
+        console.log(that.messageList)
       })
     },
-
+    getOpenId (first) {
+      const that = this
+      if (that.openId) {
+        that.getIsExist()
+        return
+      }
+      wx.cloud.callFunction({
+        name: 'user',
+        data: {}
+      }).then(res => {
+        that.openId = res.result.openid
+        if (!first) {
+          that.getIsExist()
+        }
+      })
+    },
+    getUserList () {
+      const that = this
+      wx.cloud.callFunction({
+        name: 'userList',
+        data: {}
+      }).then(res => {
+        that.userList = res.result.data.reverse()
+      })
+    },
     toForm () {
       const that = this
       that.isForm = true
@@ -174,24 +250,12 @@ export default {
       const user = db.collection('user')
       user.add({
         data: {
-          user: that.userInfo
+          user: that.currentUserInfo
         }
       }).then(res => {
         console.log(res)
       })
     },
-
-    getOpenId () {
-      const that = this
-      wx.cloud.callFunction({
-        name: 'user',
-        data: {}
-      }).then(res => {
-        that.openId = res.result.openid
-        that.getIsExist()
-      })
-    },
-
     getIsExist () {
       const that = this
       const db = wx.cloud.database()
@@ -231,11 +295,12 @@ export default {
       wx.cloud.callFunction({
         name: 'presentList',
         data: {}
-      }).then(res => {
-        if (!Array.isArray(res.data) || res.data.length === 0) {
+      }).then(({result}) => {
+        console.log(result)
+        if (!Array.isArray(result.data) || result.data.length === 0) {
           return
         }
-        that.formList = res.result.data.reverse()
+        that.formList = result.data.reverse()
       })
     }
   }
@@ -247,8 +312,8 @@ export default {
     height 100%
     width 100%
     .box
-        height 100%
-        background #F9E0D9
+        height 60%
+        // background #F9E0D9
         width 100%
         .place
             height 20rpx
@@ -258,12 +323,15 @@ export default {
             width 630rpx
             margin-left 30rpx
             border-radius 16rpx
-            background #fff
+            // background #fff
             display flex
             justify-content center
             align-items flex-start
             padding 30rpx
             margin-bottom 20rpx
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow:  0 0 20px rgba(190,77,43,.2);
             .left
                 width 100rpx
                 height 100rpx
@@ -298,21 +366,24 @@ export default {
                     font-size 28rpx
                     white-space pre-wrap
                     width 100%
+                .heart-animation
+                  width 80px
+                  height 60px
     .bottom
         position fixed
         bottom 0
         left 0
-        height 160rpx
+        height 140rpx
         background rgba(255, 255, 255, 0.75)
         width 100%
         display flex
         justify-content center
         align-items center
         .left, .right
-            height 80rpx
-            line-height 80rpx
-            font-size 28rpx
-            width 300rpx
+            height 68rpx
+            line-height 68rpx
+            font-size 24rpx
+            width 200rpx
             color #fff
             background #ED695D
             margin 0 20rpx 0 0

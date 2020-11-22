@@ -47,7 +47,7 @@
             <div
               class="content text text-2 text-center animated zoomIn">
               <p>谨定于 2021年2月7日 (腊月廿六)</p>
-              <p>地址：<text @tap="copy" @touchstart="copy" selectable="true">吉安县油田镇路西村田垅村</text></p>
+              <p>地址：<text @tap="copy" @touchstart="copy" user-select>吉安县油田镇路西村田垅村</text></p>
             </div>
             
         
@@ -80,13 +80,12 @@ export default {
   },
   data () {
     return {
-      currentUserInfo: undefined,
       isPlay: false
     }
   },
   computed: {
     tip () {
-      const name = this.currentUserInfo ? this.currentUserInfo.nickName : '您'
+      const name = this.currentUserInfo ? `"${this.currentUserInfo.nickName}"` : '您'
       return `我们真诚地欢迎${name}参加我们的\u5a5a\u793c`
     },
     config () {
@@ -94,6 +93,9 @@ export default {
     },
     isMock () {
       return this.$store.state.isMock
+    },
+    currentUserInfo () {
+      return this.$store.state.currentUserInfo
     }
   },
   watch: {
@@ -112,9 +114,9 @@ export default {
     // wx.setNavigationBarTitle({
     //   title: ''
     // })
-    wx.setNavigationBarTitle({
-      title: this.config.barTitle.index
-    })
+    // wx.setNavigationBarTitle({
+    //   title: this.config.barTitle.index
+    // })
   },
   onShow () {
     if (this.audioCtx === undefined) {
@@ -122,15 +124,14 @@ export default {
       this.audioCtx.autoplay = true
       this.audioCtx.loop = true
     }
-
+    wx.setNavigationBarTitle({
+      title: this.config.barTitle.index
+    })
     setTimeout(() => {
-      if (!this.$store.state.isMock) {
-        wx.setNavigationBarTitle({
-          title: this.config.barTitle.index
-        })
-        this.getMusicUrl()
-        this.getUserInfo()
+      if (this.$store.state.isMock) {
+        return
       }
+      this.getMusicUrl()
     }, 1000)
   },
 
@@ -159,14 +160,6 @@ export default {
           this.audioCtx.src = this.audioUrl
           this.audioCtx.play()
           this.isPlay = true
-        }
-      })
-    },
-    getUserInfo () {
-      wx.getUserInfo({
-        success: (res) => {
-          this.currentUserInfo = res.userInfo
-          console.log(this.currentUserInfo)
         }
       })
     },

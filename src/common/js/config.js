@@ -14,7 +14,7 @@ export default {
             index: '邀请函',
             photo: '甜蜜相册',
             map: '导航',
-            message: '留言评论'
+            message: '留言祝福'
         },
     }
 }
