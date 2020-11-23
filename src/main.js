@@ -18,12 +18,6 @@ config.get().then(res => {
   }
   store.commit('setConfig', res.data[0])
 })
-setTimeout(() => {
-  wx.getUserInfo({
-    success: function (res) {
-      store.commit('setCurrentUserInfo', res.userInfo)
-    }
-  })
-}, 100)
+
 const app = new Vue(App)
 app.$mount()

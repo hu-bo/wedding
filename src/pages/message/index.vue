@@ -65,9 +65,9 @@
         <div class="form-dialog" @tap="toForm">
             <image src="../../static/images/form.png"/>
         </div>
-        <!-- <div class="video" v-show="isVideo">
+        <div class="video" v-show="isVideo">
             <h-video @closeVideo="closeVideo"></h-video>
-        </div> -->
+        </div>
         <div class="form" v-show="isForm">
             <h-form :userInfo="currentUserInfo" @closeForm="closeForm" @getFromlist="getFromlist"></h-form>
         </div>
@@ -79,7 +79,7 @@
 
 <script>
 import dayjs from 'dayjs'
-// import HVideo from 'components/video'
+import HVideo from 'components/video'
 import HForm from 'components/form'
 import HFormlist from 'components/formlist'
 import tools from 'common/js/h_tools'
@@ -88,7 +88,7 @@ import Greet from 'components/Greet'
 export default {
   name: 'Message',
   components: {
-    // HVideo,
+    HVideo,
     HForm,
     HFormlist,
     Greet
@@ -132,25 +132,59 @@ export default {
     this.isFormlist = false
     this.getMessageList()
     this.getUserList()
-    this.getOpenId()
     wx.setNavigationBarTitle({
       title: this.config.barTitle.message
     })
   },
 
   methods: {
-    toMessage (e) {
+    getUserInfo () {
+      return new Promise((resolve, reject) => {
+        if (this.currentUserInfo.nickName) {
+          resolve(this.currentUserInfo)
+          return
+        }
+        wx.getUserInfo({
+          success: (res) => {
+            this.$store.commit('setCurrentUserInfo', res.userInfo)
+            resolve(res.userInfo)
+          },
+          fail: (err) => {
+            reject(err)
+          }
+        })
+      })
+    },
+    getOpenId () {
+      return new Promise((resolve, reject) => {
+        if (this.openId) {
+          resolve(this.openId)
+          return
+        }
+        wx.cloud.callFunction({
+          name: 'user',
+          data: {}
+        }).then(res => {
+          this.openId = res.result.openid
+          resolve(this.openId)
+        }).catch((err) => {
+          reject(err)
+        })
+      })
+    },
+    async toMessage (e) {
       this.isOpen = true
-      // this.getOpenId()
+      await this.getUserInfo()
+      await this.getOpenId()
     },
 
     cancel () {
       const that = this
       that.isOpen = false
     },
-    sendGreet (e) {
-      this.getOpenId()
-
+    async sendGreet (e) {
+      await this.getUserInfo()
+      await this.getOpenId()
       let canGreet = true
       this.messageList.forEach(item => {
         if (item._openid === this.openId && item.desc === 'heart-animation') {
@@ -158,6 +192,7 @@ export default {
         }
       })
       if (canGreet) {
+        this.getIsExist()
         this.sendMessage('heart-animation')
       } else {
         tools.showToast('您已经送过祝福了~')
@@ -209,22 +244,7 @@ export default {
         console.log(that.messageList)
       })
     },
-    getOpenId (first) {
-      const that = this
-      if (that.openId) {
-        that.getIsExist()
-        return
-      }
-      wx.cloud.callFunction({
-        name: 'user',
-        data: {}
-      }).then(res => {
-        that.openId = res.result.openid
-        if (!first) {
-          that.getIsExist()
-        }
-      })
-    },
+
     getUserList () {
       const that = this
       wx.cloud.callFunction({
@@ -234,9 +254,11 @@ export default {
         that.userList = res.result.data.reverse()
       })
     },
-    toForm () {
+    async toForm () {
       const that = this
       that.isForm = true
+      await this.getUserInfo()
+      await this.getOpenId()
     },
 
     closeForm () {
