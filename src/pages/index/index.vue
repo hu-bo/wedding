@@ -102,6 +102,10 @@ export default {
     }
   },
   watch: {
+    '$store.state.isMock' () {
+      console.log(this.isMock)
+      this.$forceUpdate()
+    },
     config () {
       wx.setNavigationBarTitle({
         title: this.config.barTitle.index
@@ -130,7 +134,9 @@ export default {
     wx.setNavigationBarTitle({
       title: this.config.barTitle.index
     })
+
     setTimeout(() => {
+      console.log(this.$store.state.isMock)
       if (this.$store.state.isMock) {
         return
       }

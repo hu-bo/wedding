@@ -11,8 +11,9 @@ wx.cloud.init({
 })
 
 const db = wx.cloud.database()
-const config = db.collection('config')
+const config = db.collection('config').where({})
 config.get().then(res => {
+  console.log(res)
   if (!Array.isArray(res.data) || res.data.length === 0) {
     return
   }
