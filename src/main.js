@@ -11,19 +11,14 @@ wx.cloud.init({
 })
 
 const db = wx.cloud.database()
-const config = db.collection('config')
+const config = db.collection('config').where({})
 config.get().then(res => {
+  console.log(res)
   if (!Array.isArray(res.data) || res.data.length === 0) {
     return
   }
   store.commit('setConfig', res.data[0])
 })
-setTimeout(() => {
-  wx.getUserInfo({
-    success: function (res) {
-      store.commit('setCurrentUserInfo', res.userInfo)
-    }
-  })
-}, 100)
+
 const app = new Vue(App)
 app.$mount()

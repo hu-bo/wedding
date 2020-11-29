@@ -46,7 +46,7 @@
             </div>
             <div
               class="content text text-2 text-center animated zoomIn">
-              <p>谨定于 2021年2月7日 (腊月廿六)</p>
+              <p>谨定于 {{date}}</p>
               <p>地址：<text @tap="copy" @touchstart="copy" user-select>吉安县油田镇路西村田垅村</text></p>
             </div>
             
@@ -96,9 +96,16 @@ export default {
     },
     currentUserInfo () {
       return this.$store.state.currentUserInfo
+    },
+    date () {
+      return this.$store.state.date
     }
   },
   watch: {
+    '$store.state.isMock' () {
+      console.log(this.isMock)
+      this.$forceUpdate()
+    },
     config () {
       wx.setNavigationBarTitle({
         title: this.config.barTitle.index
@@ -127,7 +134,9 @@ export default {
     wx.setNavigationBarTitle({
       title: this.config.barTitle.index
     })
+
     setTimeout(() => {
+      console.log(this.$store.state.isMock)
       if (this.$store.state.isMock) {
         return
       }
@@ -275,8 +284,8 @@ export default {
     border-radius 50%
     .our-photo
       position relative
-      top: -22px
-      left: -24px
+      top: -38px
+      left: -32px
       width 320px
       height 365.71px
   .wreath

@@ -6,7 +6,7 @@ const store = new Vuex.Store({
   state: {
     isMock: false,
     configKey: 'prod',
-    config: {},
+    date: '',
     receiverNick: '',
     receiverPhone: 0,
     currentUserInfo: undefined
@@ -21,6 +21,7 @@ const store = new Vuex.Store({
       state.configKey = payload.isMock ? 'mock' : 'prod'
       state.receiverNick = payload.receiverNick
       state.receiverPhone = payload.receiverPhone
+      state.date = payload.date
     },
     setCurrentUserInfo (state, payload) {
       state.currentUserInfo = payload
