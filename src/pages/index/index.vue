@@ -1,11 +1,11 @@
 <template>
     <div class="index">
 
-      <Introduce v-if="isMock" />
-      <div v-if="!isMock">
+      <Introduce v-if="isMock === true" />
+      <div v-if="isMock === false">
         <image
           class="cover"
-          webp 
+          webp
           src="https://res1.eqh5.com/FudBqrMFzDNuDHz9Ovz5ckDvM_a4?imageMogr2/auto-orient/thumbnail/359x714%3E/format/webp"
         />
         <div :class="{bg_music: true, playing: isPlay}" @tap="audioPlay">
@@ -49,8 +49,8 @@
               <p>谨定于 {{date}}</p>
               <p>地址：<text @tap="copy" @touchstart="copy" user-select>吉安县油田镇路西村田垅村</text></p>
             </div>
-            
-        
+
+
             <div class="flex img-line-wrap" >
               <image
                 class="img-line"
@@ -134,7 +134,10 @@ export default {
     wx.setNavigationBarTitle({
       title: this.config.barTitle.index
     })
-
+    wx.setTabBarItem({
+      index: 0,
+      text: 'text'
+    })
     setTimeout(() => {
       console.log(this.$store.state.isMock)
       if (this.$store.state.isMock) {
@@ -304,7 +307,7 @@ export default {
     height 45.5241px
   .text-1-wrap
     margin-top 4px
-  .text 
+  .text
     font-family "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif
     writing-mode horizontal-tb
     cursor default
@@ -353,10 +356,10 @@ export default {
       text-align left
   .img-line-wrap
     margin-top  6px
-  
+
   .img-line
     width 278px
     height  17.5271px
     margin-top  -0.263573px
-    
+
 </style>

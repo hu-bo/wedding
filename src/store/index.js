@@ -4,7 +4,7 @@ import Vue from 'vue'
 Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
-    isMock: false,
+    isMock: undefined,
     configKey: 'prod',
     date: '',
     receiverNick: '',
