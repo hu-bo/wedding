@@ -1,7 +1,7 @@
 <template>
     <div class="index">
 
-      <Introduce v-if="isMock === true" />
+      <Introduce v-if="isMock === true" :coverId="coverId" />
       <div v-if="isMock === false">
         <image
           class="cover"
@@ -80,7 +80,8 @@ export default {
   },
   data () {
     return {
-      isPlay: false
+      isPlay: false,
+      coverId: ''
     }
   },
   computed: {
@@ -110,7 +111,7 @@ export default {
       wx.setNavigationBarTitle({
         title: this.config.barTitle.index
       })
-      if (this.$store.state.isMock) {
+      if (this.$store.state.isMock === true || this.$store.state.isMock === undefined) {
         wx.hideTabBar()
       } else {
         wx.showTabBar()
@@ -125,7 +126,11 @@ export default {
     //   title: this.config.barTitle.index
     // })
   },
-  onShow () {
+  onShow (options) {
+    console.log('index options', options)
+    if (options && options.coverId) {
+      this.coverId = options.coverId
+    }
     if (this.audioCtx === undefined) {
       this.audioCtx = wx.createInnerAudioContext()
       this.audioCtx.autoplay = true
@@ -139,7 +144,6 @@ export default {
       text: 'text'
     })
     setTimeout(() => {
-      console.log(this.$store.state.isMock)
       if (this.$store.state.isMock) {
         return
       }

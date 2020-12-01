@@ -1,5 +1,5 @@
 <template>
-    <div class="photo">
+    <div class="photo" v-if="isMock === false">
         <!-- <h-swiper :list="list" :isGif="isGif"></h-swiper> -->
         <AlbumSwiper :list="list"></AlbumSwiper>
         
@@ -25,6 +25,9 @@ export default {
   computed: {
     config () {
       return config[this.$store.state.configKey]
+    },
+    isMock () {
+      return this.$store.state.isMock
     }
   },
   watch: {

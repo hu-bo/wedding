@@ -1,5 +1,5 @@
 <template>
-    <div class="message">
+    <div class="message" v-if="isMock === false">
         <Greet :list="userList" />
         <scroll-view
             scroll-y
@@ -114,6 +114,9 @@ export default {
   computed: {
     config () {
       return config[this.$store.state.configKey]
+    },
+    isMock () {
+      return this.$store.state.isMock
     },
     currentUserInfo () {
       return this.$store.state.currentUserInfo || {}

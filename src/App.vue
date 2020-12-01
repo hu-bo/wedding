@@ -108,7 +108,8 @@ export default {
 .flex
   display flex
   justify-content center
-
+.text-left
+  text-align left
 .text-center
   text-align center
 .text-right
