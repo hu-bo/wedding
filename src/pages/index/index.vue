@@ -1,8 +1,8 @@
 <template>
     <div class="index">
 
-      <Introduce v-if="isMock === true" :coverId="coverId" />
-      <div v-if="isMock === false">
+      <Introduce v-if="isMock === true" :coverId="coverId" :setShareData="setShareData" />
+      <div v-if="isMock === false" @touchstart="getUserInfo">
         <image
           class="cover"
           webp
@@ -12,7 +12,7 @@
           <image src="../../static/images/music_icon.png" class="music_icon"/>
           <image src="../../static/images/music_play.png" class="music_play"/>
         </div>
-        <div class="big-content">
+        <div class="big-content" @touchstart="getUserInfo">
           <div class="wreath-wrap">
             <image
               class="our-photo"
@@ -81,7 +81,8 @@ export default {
   data () {
     return {
       isPlay: false,
-      coverId: ''
+      coverId: '',
+      share: {}
     }
   },
   computed: {
@@ -104,30 +105,17 @@ export default {
   },
   watch: {
     '$store.state.isMock' () {
-      console.log(this.isMock)
       this.$forceUpdate()
     },
     config () {
       wx.setNavigationBarTitle({
         title: this.config.barTitle.index
       })
-      if (this.$store.state.isMock === true || this.$store.state.isMock === undefined) {
-        wx.hideTabBar()
-      } else {
-        wx.showTabBar()
-      }
     }
   },
   onLoad () {
-    // wx.setNavigationBarTitle({
-    //   title: ''
-    // })
-    // wx.setNavigationBarTitle({
-    //   title: this.config.barTitle.index
-    // })
   },
   onShow (options) {
-    console.log('index options', options)
     if (options && options.coverId) {
       this.coverId = options.coverId
     }
@@ -139,19 +127,60 @@ export default {
     wx.setNavigationBarTitle({
       title: this.config.barTitle.index
     })
-    wx.setTabBarItem({
-      index: 0,
-      text: 'text'
-    })
+    if (this.isMock === true || this.isMock === undefined) {
+      wx.hideTabBar()
+    } else {
+      wx.showTabBar()
+
+      const barTitle = this.config.barTitle
+      wx.setTabBarItem({
+        index: 0,
+        text: barTitle.index
+      })
+      wx.setTabBarItem({
+        index: 1,
+        text: barTitle.photo
+      })
+      wx.setTabBarItem({
+        index: 2,
+        text: barTitle.map
+      })
+      wx.setTabBarItem({
+        index: 3,
+        text: barTitle.message
+      })
+    }
     setTimeout(() => {
       if (this.$store.state.isMock) {
         return
       }
       this.getMusicUrl()
-    }, 1000)
+    }, 800)
   },
-
+  onShareAppMessage () {
+    return this.share.title ? this.share : this.$store.state.share
+  },
   methods: {
+    getUserInfo () {
+      return new Promise((resolve, reject) => {
+        if (this.currentUserInfo.nickName) {
+          resolve(this.currentUserInfo)
+          return
+        }
+        wx.getUserInfo({
+          success: (res) => {
+            this.$store.commit('setCurrentUserInfo', res.userInfo)
+            resolve(res.userInfo)
+          },
+          fail: (err) => {
+            reject(err)
+          }
+        })
+      })
+    },
+    setShareData (data) {
+      this.share = data
+    },
     audioPlay () {
       if (this.isPlay) {
         this.audioCtx.pause()
@@ -207,12 +236,8 @@ export default {
         }
       })
     }
-  },
-  onShareAppMessage: function (res) {
-    return {
-      path: '/pages/index/main'
-    }
   }
+
 }
 </script>
 
@@ -335,7 +360,7 @@ export default {
     position fixed
     left 0
     width 100%
-    bottom 26px
+    bottom 8%
   .our-name
     position relative
     display flex

@@ -5,8 +5,8 @@ export default {
         barTitle: {
             index: '邀请函',
             photo: '邀请函',
-            map: '导航',
-            message: '留言评论'
+            map: '邀请函',
+            message: '邀请函'
         },
     },
     prod: {

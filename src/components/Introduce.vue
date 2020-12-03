@@ -15,16 +15,16 @@
         <div class="wreath-wrap">
           <image
             class="our-photo"
-            :src="config.photo"
+            :src="myConfig.photo"
             mode="aspectFill"
-            :style="{left: config.photoStyle.left + 'px', top: config.photoStyle.top + 'px'}"
+            :style="{left: myConfig.photoStyle.left + 'px', top: myConfig.photoStyle.top + 'px'}"
           />
         </div>
         <button
         class="cover-upload"
-         v-if="creating && !config.photo" 
+         v-if="creating" 
          @tap="chooseImageTap"
-         >点击上传合照</button>
+         >点击上传/更新合照</button>
         <button
           class="cover-eidtor-button left"
           v-if="creating && photoEditting" 
@@ -63,21 +63,21 @@
         <div class="text-center bottom-box">
           <div class="our-name ">
             <span  v-if="!creating" class="boy">
-              {{config.boy}}
+              {{myConfig.boy}}
             </span>
-            <div class="boy" v-if="creating"><input class="form-input" type="text" placeholder="请输入新郎姓名" v-model="config.boy"></div>
+            <div class="boy" v-if="creating"><input class="form-input" type="text" placeholder="请输入新郎姓名" v-model="myConfig.boy"></div>
             <span class="symbol">&</span>
             <span v-if="!creating" class="girl">
-              {{config.girl}}
+              {{myConfig.girl}}
             </span>
-            <div class="girl" v-if="creating"><input class="form-input" type="text" placeholder="请输入新娘姓名" v-model="config.girl"></div>
+            <div class="girl" v-if="creating"><input class="form-input" type="text" placeholder="请输入新娘姓名" v-model="myConfig.girl"></div>
           </div>
           <div
             class="content text text-2 text-center animated zoomIn">
-            <p v-if="!creating">谨定于 {{config.date}}</p>
-            <div v-if="creating">日期<input class="form-input" type="text" placeholder="请输入婚期" v-model="config.date"></div>
-            <p v-if="!creating">地址：<text @tap="copy" @touchstart="copy" user-select>{{config.address}}</text></p>
-            <div v-if="creating">地址：<input class="form-input" type="text" placeholder="请输入婚礼举办地址" v-model="config.address"></div>
+            <p v-if="!creating">谨定于 {{myConfig.date}}</p>
+            <div v-if="creating">日期<input class="form-input" type="text" placeholder="请输入婚期" v-model="myConfig.date"></div>
+            <p v-if="!creating">地址：<text @tap="copy" @touchstart="copy" user-select>{{myConfig.address}}</text></p>
+            <div v-if="creating">地址：<input class="form-input" type="text" placeholder="请输入婚礼举办地址" v-model="myConfig.address"></div>
           </div>
 
 
@@ -97,7 +97,7 @@
     </div>
 
     <div v-if="creating" class="buttons">
-      <button @tap="transPhoto" :loading="loading" v-if="config.photo">{{buttonText}}</button>
+      <button @tap="transPhoto" :loading="loading" v-if="myConfig.photo">{{buttonText}}</button>
       <button @tap="createCover" :loading="loading">制作</button>
       <button @tap="share"  open-type="share"  :loading="loading">分享</button>
     </div>
@@ -114,14 +114,14 @@ export default {
   components: {
 
   },
-  props: ['coverId'],
+  props: ['coverId', 'setShareData'],
   data () {
     return {
       isPlay: false,
       creating: true,
       loading: false,
       photoEditting: false,
-      config: {
+      myConfig: {
         photo: '',
         music: 'https://qnm.hunliji.com/n-LvZJP0teoKD9I40PDyXmbhuJQ=/FqLM-1Nc9l-ppz-vZ8IehL3R_D40.mp3',
         boy: '',
@@ -156,6 +156,11 @@ export default {
   watch: {
     '$store.state.isMock' () {
       this.$forceUpdate()
+    },
+    '$store' () {
+      if (this.$store.state.shareId && this.creating === true) {
+        this.creating = false
+      }
     }
   },
   onLoad (options) {
@@ -168,26 +173,16 @@ export default {
       title: '邀请函'
     })
 
-    if (this.coverId) {
+    if (this.coverId || this.$store.state.shareId) {
       this.creating = false
-      this.getCoverData(this.coverId)
+      this.getCoverData(this.coverId || this.$store.state.shareId)
     } else {
       this.getCoverData()
     }
   },
   onShow (options) {
-    console.log('onShow', options)
   },
   onReady (options) {
-    console.log('onReady', options)
-  },
-  onShareAppMessage () {
-    console.log(`/pages/index/main?coverId=${this.config._id}`)
-    return {
-      title: '邀请函',
-
-      path: `/pages/index/main?coverId=${this.config._id}`
-    }
   },
   methods: {
     getOpenId () {
@@ -214,16 +209,19 @@ export default {
         title: '加载中'
       })
       const openId = await this.getOpenId()
-      let where = {
-        _openid: openId
-      }
+      let where
+
       if (typeof coverId === 'string') {
         where = {
           _id: coverId
         }
+      } else {
+        where = {
+          _openid: openId
+        }
       }
       invitation.where(where).get().then(res => {
-        console.log('invitation', res.data)
+        console.log(where, res)
         if (res.data.length !== 0) {
           const config = res.data[0]
           this.hasData = true
@@ -233,9 +231,13 @@ export default {
               // 返回临时文件路径
               console.log(res.tempFilePath)
               config.photo = res.tempFilePath
-              this.config = config
+              this.myConfig = config
               wx.hideLoading()
-              this.setMusicUrl(this.config.music)
+              this.setMusicUrl(this.myConfig.music)
+              this.setShareData({
+                title: '邀请函',
+                path: `/pages/index/main?coverId=${this.myConfig._id}`
+              })
             },
             fail: (err) => {
               console.error(err)
@@ -259,6 +261,10 @@ export default {
       //     this.creating = true
       //   }
       // })
+      if (!this.myConfig._id) {
+        tools.showToast(`需要点击制作`)
+        return false
+      }
     },
     createCover () {
       const TXT_MAP = {
@@ -293,7 +299,7 @@ export default {
                 setTimeout(() => {
                   this.loading = false
                   tools.showToast(`制作成功并保存`)
-                  this.setMusicUrl(this.config.music)
+                  this.setMusicUrl(this.myConfig.music)
                 }, 1000)
               })
             }
@@ -305,7 +311,7 @@ export default {
             setTimeout(() => {
               this.loading = false
               tools.showToast(`制作成功并保存`)
-              this.setMusicUrl(this.config.music)
+              this.setMusicUrl(this.myConfig.music)
             }, 1000)
           })
         }
@@ -315,7 +321,7 @@ export default {
       if (typeof direction === 'string') {
         const dis = (direction === 'top' || direction === 'left') ? -2 : 2
         const key = (direction === 'top' || direction === 'bottom') ? 'top' : 'left'
-        this.config.photoStyle[key] = (this.config.photoStyle[key] || 0) + dis
+        this.myConfig.photoStyle[key] = (this.myConfig.photoStyle[key] || 0) + dis
       } else {
         this.photoEditting = !this.photoEditting
       }
@@ -352,7 +358,7 @@ export default {
             // 成功回调
             success: res => {
               console.log('上传成功', res)
-              this.config.photo = res.fileID
+              this.myConfig.photo = res.fileID
             }
           })
         }
@@ -394,7 +400,7 @@ export default {
     },
     copy () {
       wx.setClipboardData({
-        data: this.config.address,
+        data: this.myConfig.address,
         success: function (res) {
           wx.showToast({
             title: '复制成功'

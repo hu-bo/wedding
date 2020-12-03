@@ -1,5 +1,5 @@
 <template>
-    <div class="map">
+    <div class="map" v-if="isMock === false">
         <image mode="aspectFit" class="head-img" src="../../static/images/t1.png"/>
         <map
           class="content"

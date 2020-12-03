@@ -139,7 +139,9 @@ export default {
       title: this.config.barTitle.message
     })
   },
-
+  onShareAppMessage () {
+    return this.$store.state.share
+  },
   methods: {
     getUserInfo () {
       return new Promise((resolve, reject) => {

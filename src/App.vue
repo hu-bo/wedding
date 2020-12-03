@@ -1,6 +1,11 @@
 <script>
+import store from './store'
 export default {
-  onLaunch () {
+  onLaunch (options) {
+    if (options.query.coverId) {
+      store.commit('setShareId', options.query.coverId)
+    }
+
     // 检测小程序是否有新版本更新
     if (wx.canIUse('getUpdateManager')) {
       const updateManager = wx.getUpdateManager()
